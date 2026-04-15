@@ -1,0 +1,515 @@
+{
+  "name": "Youtube",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -128,
+        32
+      ],
+      "id": "bbd4f124-d994-4e2e-a5ae-9ac1a75e2277",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1EoJwXt_kOdwgKIjmI5sIP3r2APu7VZOTbcdXy_fwyz4",
+          "mode": "list",
+          "cachedResultName": "Youtube",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EoJwXt_kOdwgKIjmI5sIP3r2APu7VZOTbcdXy_fwyz4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EoJwXt_kOdwgKIjmI5sIP3r2APu7VZOTbcdXy_fwyz4/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Pending"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        96,
+        32
+      ],
+      "id": "00ff2e2f-8777-4ac9-b304-ee7dba8a4f14",
+      "name": "Read Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tritXqeH4gVzLBqY",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filter only rows with Status = \"Pending\"\nconst pending = items.filter(item => item.json.Status === 'Pending');\n\n// If no pending items, stop workflow\nif (pending.length === 0) {\n  return [{ json: { message: \"No pending keywords left\" }}];\n}\n\n// Take the FIRST pending row (sequential order)\nconst nextRow = pending[0];\n\n// Output this row\nreturn [{ json: nextRow.json }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        32
+      ],
+      "id": "c4b667a2-902a-45cf-a9f8-c9b878a24d22",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Prepare YouTube Upload Data').item.json.videoID }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1120,
+        32
+      ],
+      "id": "a6b93162-bcbd-47ac-9d94-0a7f32a53745",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "9N6APrzVNhqvOOVl",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "upload",
+        "title": "={{ $('Prepare YouTube Upload Data').item.json.title }}",
+        "regionCode": "IN",
+        "categoryId": "28",
+        "options": {
+          "description": "={{ $('Prepare YouTube Upload Data').item.json.description }}",
+          "privacyStatus": "public"
+        }
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        32
+      ],
+      "id": "7aeb758e-146c-4dbf-b6b8-606c85751816",
+      "name": "Upload a video",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "5ytYKjl6K3pdJaZ4",
+          "name": "YouTube account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "title",
+              "value": "={{ $('Code').item.json['Model Number'] + ' - ' + $('Code').item.json['Machine Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "description",
+              "value": "={{ $json.output[0].content[0].text }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "videoID",
+              "value": "={{ $('Code').item.json.videoID }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "row_number",
+              "value": "={{ $('Code').item.json.row_number }}",
+              "type": "number"
+            },
+            {
+              "id": "id-5",
+              "name": "videoType",
+              "value": "={{ $('Code').item.json['Video Type'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9eb14d95-80af-46ca-b392-582491e245ca",
+      "name": "Prepare YouTube Upload Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Company/Brand: Hari Chand Anand & Co. (HCA)\nMachine Name: {{ $('Code').item.json['Machine Name'] }}\nModel Number: {{ $('Code').item.json['Model Number'] }}\nVideo Type: {{ $('Code').item.json['Video Type'] }}\n\nTASK:\nWrite a YouTube video description for HCA in a professional manual-post style.\n\nSTRICT RULES (VERY IMPORTANT):\n- DO NOT use *, **, _, or any markdown formatting\n- DO NOT bold, italicize, or stylize section headers\n- Output must be plain text only\n\nCONTENT REQUIREMENTS:\n1) 2–3 short paragraphs explaining:\n   - what the machine does\n   - where it is used\n   - how it improves garment production\n2) Mention HCA only once\n3) Add exactly 3 bullet points using ✅ (no other bullet styles)\n4) Add this line EXACTLY as written:\n📩 For pricing / demo / dealership: Comment or contact us.\n5) Add this CTA line:\n👍 Like, Share & Subscribe for more garment machinery videos!\n\nHASHTAGS:\n- Provide EXACTLY 20 hashtags\n- No emojis in hashtags\n- No duplicate hashtags\n- Include #HCA and the model hashtag\n\nOUTPUT FORMAT (NO EXTRA TEXT):\n\nDESCRIPTION:\n[plain text description]\n\nHASHTAGS:\n#tag1 #tag2 #tag3 ... #tag20\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2,
+      "position": [
+        544,
+        32
+      ],
+      "id": "f86d17ca-d37b-4425-b0eb-338b5c95a8e3",
+      "name": "Generate Description and Hashtags",
+      "credentials": {
+        "openAiApi": {
+          "id": "OjBjvKSdZa6VEcQD",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Machine Name: {{ $('Code').item.json['Machine Name'] }}\nModel Number: {{ $('Code').item.json['Model Number'] }}\nVideo Type: {{ $('Code').item.json['Video Type'] }}\n\nGenerate:\n1. An engaging YouTube description (2-3 paragraphs) that highlights the machine's features and benefits\n2. 10-15 relevant hashtags for maximum reach\n\nFormat your response as:\nDESCRIPTION:\n[description here]\n\nHASHTAGS:\n[hashtags here]"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        464,
+        368
+      ],
+      "id": "52a6bdc0-ff7f-4a5e-8810-73b3cfc1e3a8",
+      "name": "Message a model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Yp5E4DxyV4U1qX7o",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "title",
+              "value": "={{ $('Code').item.json['Model Number'] + ' - ' + $('Code').item.json['Machine Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "description",
+              "value": "={{ $json.output[0].content[0].text }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "videoID",
+              "value": "={{ $('Code').item.json.videoID }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "row_number",
+              "value": "={{ $('Code').item.json.row_number }}",
+              "type": "number"
+            },
+            {
+              "id": "id-5",
+              "name": "videoType",
+              "value": "={{ $('Code').item.json['Video Type'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ff168df5-3dc7-4b4c-ac6e-c2e9046cb606",
+      "name": "Prepare YouTube Upload Data1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        960,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1EoJwXt_kOdwgKIjmI5sIP3r2APu7VZOTbcdXy_fwyz4",
+          "mode": "list",
+          "cachedResultName": "Youtube",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EoJwXt_kOdwgKIjmI5sIP3r2APu7VZOTbcdXy_fwyz4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EoJwXt_kOdwgKIjmI5sIP3r2APu7VZOTbcdXy_fwyz4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('Code').item.json.row_number }}",
+            "Status": "Completed"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Model Number",
+              "displayName": "Model Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Machine Name",
+              "displayName": "Machine Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Video Type",
+              "displayName": "Video Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "videoID",
+              "displayName": "videoID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "uploadId",
+              "displayName": "uploadId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        32
+      ],
+      "id": "c90ca0c7-e9f4-4844-a762-ab1f4666787e",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tritXqeH4gVzLBqY",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Sheets": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Upload a video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload a video": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare YouTube Upload Data": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Generate Description and Hashtags",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Description and Hashtags": {
+      "main": [
+        [
+          {
+            "node": "Prepare YouTube Upload Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Prepare YouTube Upload Data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "96dfa8f0-8b3a-498f-b6c8-1e15737ed4d7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "68a251423bbf1a1fb243908498854747fefc044b5c9e85fe6f46913b8c6bfc64"
+  },
+  "id": "Yry3RelxUXoEoLSm",
+  "tags": []
+}
