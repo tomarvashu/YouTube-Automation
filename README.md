@@ -3,7 +3,9 @@
 An automated YouTube publishing workflow built in n8n. The system reads pending video entries from Google Sheets, generates a YouTube description and hashtags using AI, downloads the selected video from Google Drive, uploads it to YouTube, and updates the publishing status automatically.
 
 ## My Role
-I initiated this project, defined the workflow structure, and actively contributed to its design and refinement. Development was carried out with support from my internal team, while I remained involved in testing, iteration, and execution review.
+I initiated this project and defined the workflow structure, publishing logic, and practical use case it was designed to support.
+
+As my role later expanded into broader Operations & Technology leadership, my contribution shifted more toward workflow direction, testing, refinement, and execution oversight. Development was carried forward with support from my internal team, while I remained involved in shaping the system logic, usability, and practical execution flow.
 
 ## What It Does
 - Reads pending video rows from Google Sheets
